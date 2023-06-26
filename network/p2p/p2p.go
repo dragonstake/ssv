@@ -260,7 +260,8 @@ func (n *p2pNetwork) UpdateSubnets(logger *zap.Logger) {
 		allSubs, _ := records.Subnets{}.FromString(records.AllSubnets)
 		subnetsList := records.SharedSubnets(allSubs, n.subnets, 0)
 		logger.Debug("updated subnets (node-info)",
-			zap.Any("subnets", subnetsList),
+			zap.Ints("subnets", subnetsList),
+			zap.Ints("added", subnetsToAdd),
 			zap.Duration("took", time.Since(start)),
 		)
 	}

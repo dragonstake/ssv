@@ -107,10 +107,11 @@ func (n *p2pNetwork) Unsubscribe(logger *zap.Logger, pk spectypes.ValidatorPK) e
 func (n *p2pNetwork) subscribe(logger *zap.Logger, pk spectypes.ValidatorPK) error {
 	topics := n.fork.ValidatorTopicID(pk)
 	for _, topic := range topics {
-		if err := n.topicsCtrl.Subscribe(logger, topic); err != nil {
-			// return errors.Wrap(err, "could not broadcast message")
-			return err
+		err := n.topicsCtrl.Subscribe(logger, topic)
+		if err != nil {
+			return errors.Wrap(err, "failed to subscribe to topic")
 		}
+		logger.Debug("subscribed to topic", zap.String("topic", topic), fields.PubKey(pk), zap.Error(err))
 	}
 	return nil
 }
