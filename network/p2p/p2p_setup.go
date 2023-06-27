@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"net/http"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -77,6 +78,34 @@ func (n *p2pNetwork) Setup(logger *zap.Logger) error {
 		return err
 	}
 	logger.Info("services configured")
+
+	// TEMP: http server to call Subscribe() on given public key
+	m := http.NewServeMux()
+	m.HandleFunc("/subscribe", func(w http.ResponseWriter, r *http.Request) {
+		pk, err := hex.DecodeString(r.URL.Query().Get("pk"))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("invalid pk hex"))
+			return
+		}
+		if len(pk) != 48 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("invalid pk length"))
+			return
+		}
+		if err := n.Subscribe(pk); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf("subscribe failed: %s", err.Error())))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("subscribed!"))
+	})
+	go func() {
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", 6090), m); err != nil {
+			logger.Error("http server error", zap.Error(err))
+		}
+	}()
 
 	return nil
 }
