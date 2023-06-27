@@ -83,7 +83,7 @@ func (n *p2pNetwork) reportTopics(logger *zap.Logger) func() {
 }
 
 func namedPeers(ids []peer.ID) []string {
-	var known = map[peer.ID]string{
+	var known = map[string]string{
 		"16Uiu2HAkzXdRuiGgkMV7A4GdftAdPb5jESQLfrPbCJtG8CK3zxDf": "node-4",
 		"16Uiu2HAm8Gs8C13HmmWq7QH4hWYo6R4vvBNK4pr3iaBrvNjzzfup": "node-1",
 		"16Uiu2HAmLog6qkUjnmSnJMGhPQwpHU7ohgiPYW5ffqyRJGHbW9kM": "node-3",
@@ -93,9 +93,9 @@ func namedPeers(ids []peer.ID) []string {
 
 	names := make([]string, len(ids))
 	for i, id := range ids {
-		name, ok := known[id]
+		name, ok := known[id.String()]
 		if !ok {
-			names[i] = string(id)
+			names[i] = id.String()
 		}
 		names[i] = name
 	}
