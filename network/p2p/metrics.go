@@ -97,8 +97,9 @@ func namedPeers(ids []peer.ID) []string {
 		name, ok := known[id.String()]
 		if !ok {
 			names[i] = id.String()
+		} else {
+			names[i] = name
 		}
-		names[i] = name
 	}
 	return names
 }
@@ -122,12 +123,12 @@ func (n *p2pNetwork) reportTopicPeers(logger *zap.Logger, name string) {
 	for _, p := range allPeers {
 		n, err := n.idx.GetNodeInfo(p)
 		if err != nil {
-			errs = append(errs, fmt.Sprintf("could not get node info (peer id: %d): %s", p, err.Error()))
+			errs = append(errs, fmt.Sprintf("could not get node info (peer id: %s): %s", p, err.Error()))
 			continue
 		}
 		subnets, err := records.Subnets{}.FromString(n.Metadata.Subnets)
 		if err != nil {
-			errs = append(errs, fmt.Sprintf("could not parse subnets (peer id: %d): %s", p, err.Error()))
+			errs = append(errs, fmt.Sprintf("could not parse subnets (peer id: %s): %s", p, err.Error()))
 			continue
 		}
 		if subnets[subnet] == 1 {
