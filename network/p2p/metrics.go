@@ -1,6 +1,7 @@
 package p2pv1
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -110,10 +111,10 @@ func (n *p2pNetwork) reportTopicPeers(logger *zap.Logger, name string) {
 	}
 	allPeers := n.host.Network().Peers()
 
-	var errs []error
+	var errs []string
 	subnet, err := strconv.Atoi(name)
 	if err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Sprintf("could not convert topic name to subnet: %s", err.Error()))
 	}
 	getSubnetPeers := n.idx.GetSubnetPeers(subnet)
 
@@ -121,12 +122,12 @@ func (n *p2pNetwork) reportTopicPeers(logger *zap.Logger, name string) {
 	for _, p := range allPeers {
 		n, err := n.idx.GetNodeInfo(p)
 		if err != nil {
-			errs = append(errs, err)
+			errs = append(errs, fmt.Sprintf("could not get node info (peer id: %d): %s", p, err.Error()))
 			continue
 		}
 		subnets, err := records.Subnets{}.FromString(n.Metadata.Subnets)
 		if err != nil {
-			errs = append(errs, err)
+			errs = append(errs, fmt.Sprintf("could not parse subnets (peer id: %d): %s", p, err.Error()))
 			continue
 		}
 		if subnets[subnet] == 1 {
@@ -149,7 +150,7 @@ func (n *p2pNetwork) reportTopicPeers(logger *zap.Logger, name string) {
 		zap.Int("all_peers_count", len(allPeers)),
 		zap.Any("all_peers", namedPeers(allPeers)),
 
-		zap.Errors("errors", errs),
+		zap.Strings("errors", errs),
 	)
 	MetricsConnectedPeers.WithLabelValues(name).Set(float64(len(peers)))
 }
