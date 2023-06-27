@@ -143,8 +143,8 @@ func (n *p2pNetwork) reportTopicPeers(logger *zap.Logger, name string) {
 		zap.Int("get_subnet_peers_count", len(getSubnetPeers)),
 		zap.Any("get_subnet_peers", namedPeers(getSubnetPeers)),
 
-		zap.Int("metadata_peers_count", len(metadataPeers)),
-		zap.Any("metadata_peers", namedPeers(metadataPeers)),
+		zap.Int("metadata_subnet_peers_count", len(metadataPeers)),
+		zap.Any("metadata_subnet_peers", namedPeers(metadataPeers)),
 
 		zap.Int("all_peers_count", len(allPeers)),
 		zap.Any("all_peers", namedPeers(allPeers)),
