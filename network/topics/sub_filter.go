@@ -34,6 +34,7 @@ func newSubFilter(logger *zap.Logger, fork forks.Fork, subsLimit int) SubFilter 
 
 // CanSubscribe returns true if the topic is of interest and we can subscribe to it
 func (sf *subFilter) CanSubscribe(topic string) bool {
+	return true
 	if sf.fork.GetTopicBaseName(topic) == topic {
 		// not of the same fork
 		return false
