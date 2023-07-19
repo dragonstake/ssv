@@ -12,7 +12,7 @@ var JatoV2Stage = NetworkConfig{
 	Name:                 "jato-v2-stage",
 	Beacon:               beacon.NewNetwork(spectypes.PraterNetwork),
 	Domain:               [4]byte{0x00, 0x00, 0x30, 0x12},
-	GenesisEpoch:         152834,
+	GenesisEpoch:         190782,
 	ETH1SyncOffset:       new(big.Int).SetInt64(9249887),
 	RegistryContractAddr: "0xd6b633304Db2DD59ce93753FA55076DA367e5b2c",
 	Bootnodes: []string{
