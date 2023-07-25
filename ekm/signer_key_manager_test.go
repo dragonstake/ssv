@@ -32,7 +32,7 @@ func testKeyManager(t *testing.T) spectypes.KeyManager {
 	db, err := getBaseStorage(logger)
 	require.NoError(t, err)
 
-	km, err := NewETHKeyManagerSigner(logger, db, networkconfig.TestNetwork, true)
+	km, err := NewETHKeyManagerSigner(logger, db, networkconfig.TestNetwork, true, []byte("password"))
 	require.NoError(t, err)
 
 	sk1 := &bls.SecretKey{}

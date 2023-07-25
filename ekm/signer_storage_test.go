@@ -3,6 +3,7 @@ package ekm
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/pkg/errors"
 	"math/big"
 	"testing"
 
@@ -36,13 +37,13 @@ func getBaseStorage(logger *zap.Logger) (basedb.IDb, error) {
 	})
 }
 
-func newStorageForTest(t *testing.T) (Storage, func()) {
+func newStorageForTest(t *testing.T, password []byte) (Storage, func()) {
 	logger := logging.TestLogger(t)
 	db, err := getBaseStorage(logger)
 	if err != nil {
 		return nil, func() {}
 	}
-	s := NewSignerStorage(db, networkconfig.TestNetwork.Beacon, logger)
+	s := NewSignerStorage(db, networkconfig.TestNetwork.Beacon, logger, password)
 	return s, func() {
 		db.Close(logging.TestLogger(t))
 	}
@@ -55,7 +56,7 @@ func testWallet(t *testing.T) (core.Wallet, Storage, func()) {
 	index := 1
 
 	//signerStorage := getWalletStorage(t)
-	signerStorage, done := newStorageForTest(t)
+	signerStorage, done := newStorageForTest(t, []byte("password"))
 
 	wallet := hd.NewWallet(&core.WalletContext{Storage: signerStorage})
 	require.NoError(t, signerStorage.SaveWallet(wallet))
@@ -111,13 +112,55 @@ func TestDeleteAccount(t *testing.T) {
 }
 
 func TestNonExistingWallet(t *testing.T) {
-	signerStorage, done := newStorageForTest(t)
+	signerStorage, done := newStorageForTest(t, []byte("password"))
 	defer done()
 
 	w, err := signerStorage.OpenWallet()
 	require.NotNil(t, err)
 	require.EqualError(t, err, "could not find wallet")
 	require.Nil(t, w)
+}
+
+func TestPassword(t *testing.T) {
+
+	threshold.Init()
+	sk := bls.SecretKey{}
+	sk.SetByCSPRNG()
+	index := 1
+
+	logger := logging.TestLogger(t)
+	db, err := getBaseStorage(logger)
+	require.NoError(t, err)
+	s := NewSignerStorage(db, networkconfig.TestNetwork.Beacon, logger, []byte("password"))
+	defer db.Close(logging.TestLogger(t))
+
+	hdwallet := hd.NewWallet(&core.WalletContext{Storage: s})
+	require.NoError(t, s.SaveWallet(hdwallet))
+
+	a, err := hdwallet.CreateValidatorAccountFromPrivateKey(sk.Serialize(), &index)
+	require.NoError(t, err)
+
+	wallet, err := s.OpenWallet()
+	require.NoError(t, err)
+	// open
+	_, err = wallet.AccountByPublicKey(hex.EncodeToString(a.ValidatorPublicKey()))
+	require.NoError(t, err)
+
+	s.password = []byte("otherpassword")
+
+	wallet2, err := s.OpenWallet()
+	require.NoError(t, err)
+
+	_, err = wallet2.AccountByPublicKey(hex.EncodeToString(a.ValidatorPublicKey()))
+	require.True(t, errors.Is(err, ErrCantDecrypt))
+
+	s.password = []byte("password")
+
+	wallet3, err := s.OpenWallet()
+	require.NoError(t, err)
+
+	_, err = wallet3.AccountByPublicKey(hex.EncodeToString(a.ValidatorPublicKey()))
+	require.NoError(t, err)
 }
 
 func TestNonExistingAccount(t *testing.T) {
