@@ -26,6 +26,7 @@ var (
 		migration_1_example,
 		migration_2_encrypt_shares,
 		migration_3_drop_registry_data,
+		migration_4_exporter_delete_hashed_key,
 	}
 )
 
